@@ -17,11 +17,7 @@
       --text: #1a1916;
       --muted: #7a7670;
       --accent: #c8441a;
-      --accent-light: #f5e8e3;
       --green: #1d6e4a;
-      --green-light: #e3f0ea;
-      --amber: #9a6200;
-      --amber-light: #fdf3de;
       --mono: 'DM Mono', monospace;
       --sans: 'DM Sans', sans-serif;
     }
@@ -50,16 +46,12 @@
       margin-bottom: 0.5rem;
     }
 
-    .logo-icon {
-      width: 36px;
-      height: 36px;
-    }
+    .logo-icon { width: 36px; height: 36px; }
 
     h1 {
       font-size: 1.75rem;
       font-weight: 500;
       letter-spacing: -0.03em;
-      color: var(--text);
     }
 
     .subtitle {
@@ -78,44 +70,13 @@
       max-width: 600px;
     }
 
-    .toggle-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      background: var(--surface2);
-      border-radius: 10px;
-      padding: 5px;
-      margin-bottom: 1.75rem;
-    }
-
-    .toggle-btn {
-      padding: 9px 0;
-      border-radius: 7px;
-      border: none;
-      background: transparent;
-      font-family: var(--sans);
-      font-size: 0.85rem;
-      font-weight: 400;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.15s;
+    /* detection badge above textarea */
+    .detect-row {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .toggle-btn.active {
-      background: var(--surface);
-      color: var(--text);
-      font-weight: 500;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
-
-    .toggle-btn svg {
-      width: 15px;
-      height: 15px;
-      flex-shrink: 0;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      min-height: 22px;
     }
 
     .field-label {
@@ -124,8 +85,35 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 0.5rem;
     }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 9px 2px 6px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(-3px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .badge.visible { opacity: 1; transform: translateY(0); }
+    .badge-apple { background: #e8f0fe; color: #1a1916; }
+    .badge-google { background: #e6f4ea; color: #1a1916; }
+
+    .badge svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* input row */
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .input-row textarea { flex: 1; }
 
     textarea {
       width: 100%;
@@ -139,7 +127,7 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       resize: vertical;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, background 0.15s;
     }
 
     textarea:focus {
@@ -153,31 +141,43 @@
       color: var(--green);
     }
 
-    .convert-btn {
-      width: 100%;
-      margin-top: 1rem;
-      padding: 12px;
-      border: none;
+    .paste-btn {
+      flex-shrink: 0;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
       border-radius: 10px;
-      background: var(--text);
-      color: #fff;
+      background: var(--surface2);
       font-family: var(--sans);
-      font-size: 0.9rem;
+      font-size: 0.82rem;
       font-weight: 500;
+      color: var(--muted);
       cursor: pointer;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      transition: opacity 0.15s, transform 0.1s;
+      gap: 6px;
+      transition: all 0.15s;
+      height: 88px;
+      width: 64px;
     }
 
-    .convert-btn:hover { opacity: 0.85; }
-    .convert-btn:active { transform: scale(0.99); }
+    .paste-btn:hover { background: var(--border); color: var(--text); }
+    .paste-btn svg { width: 18px; height: 18px; }
+    .paste-btn span { font-size: 0.7rem; letter-spacing: 0.02em; }
 
-    .convert-btn svg {
-      width: 16px;
-      height: 16px;
+    /* output */
+    #output-section {
+      display: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    #output-section.visible {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .divider {
@@ -186,62 +186,15 @@
       margin: 1.5rem 0;
     }
 
-    .stops-preview {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      margin-bottom: 1.25rem;
-    }
-
-    .stop-row {
+    /* converted-to label with logo */
+    .converted-label-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      min-height: 28px;
+      gap: 7px;
+      margin-bottom: 0.5rem;
     }
 
-    .stop-line {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 18px;
-      flex-shrink: 0;
-    }
-
-    .stop-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .dot-origin { background: var(--green); }
-    .dot-waypoint { background: var(--amber); }
-    .dot-dest { background: var(--accent); }
-
-    .connector {
-      width: 2px;
-      height: 14px;
-      background: var(--border);
-      margin: 2px 0;
-    }
-
-    .stop-info { flex: 1; min-width: 0; }
-    .stop-type {
-      font-size: 0.68rem;
-      font-weight: 500;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .stop-name {
-      font-size: 0.85rem;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    .converted-label-row svg { width: 15px; height: 15px; flex-shrink: 0; }
 
     .output-wrapper { position: relative; }
 
@@ -264,6 +217,7 @@
     .copy-btn:hover { color: var(--text); border-color: var(--text); }
     .copy-btn.copied { color: var(--green); border-color: var(--green); }
 
+    /* open buttons */
     .action-row {
       display: flex;
       gap: 8px;
@@ -272,30 +226,35 @@
 
     .open-btn {
       flex: 1;
-      padding: 10px;
+      padding: 11px 10px;
       border: 1px solid var(--border);
       border-radius: 10px;
       background: transparent;
       font-family: var(--sans);
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 400;
       color: var(--text);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      transition: background 0.15s;
+      gap: 7px;
+      transition: background 0.15s, border-color 0.15s;
       text-decoration: none;
     }
 
-    .open-btn:hover { background: var(--surface2); }
+    .open-btn:hover { background: var(--surface2); border-color: #c4c0b8; }
+    .open-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 
-    .open-btn svg {
-      width: 14px;
-      height: 14px;
+    .open-btn.primary {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
     }
 
+    .open-btn.primary:hover { opacity: 0.85; background: var(--text); }
+
+    /* error */
     .error-box {
       display: none;
       margin-top: 1rem;
@@ -312,9 +271,8 @@
       font-size: 0.75rem;
       color: var(--muted);
       text-align: center;
+      line-height: 1.8;
     }
-
-    #output-section { display: none; }
   </style>
 </head>
 <body>
@@ -332,86 +290,105 @@
 </header>
 
 <div class="card">
-  <div class="toggle-row">
-    <button class="toggle-btn active" id="tab-apple" onclick="setMode('apple-to-google')">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-      Apple → Google
-    </button>
-    <button class="toggle-btn" id="tab-google" onclick="setMode('google-to-apple')">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z"/></svg>
-      Google → Apple
+  <div class="detect-row">
+    <div class="field-label">Maps URL</div>
+    <span class="badge" id="detect-badge"></span>
+  </div>
+  <div class="input-row">
+    <textarea id="input-url" placeholder="Paste an Apple Maps or Google Maps directions link…"></textarea>
+    <button class="paste-btn" onclick="pasteFromClipboard()" title="Paste from clipboard">
+      <!-- clipboard icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="2" width="6" height="4" rx="1"/>
+        <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/>
+      </svg>
+      <span>Paste</span>
     </button>
   </div>
-
-  <div class="field-label" id="input-label">Apple Maps URL</div>
-  <textarea id="input-url" placeholder="https://maps.apple.com/directions?source=..."></textarea>
-
-  <button class="convert-btn" onclick="convert()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/>
-    </svg>
-    Convert
-  </button>
 
   <div class="error-box" id="error-box"></div>
 
   <div id="output-section">
     <hr class="divider" />
 
-    <div class="stops-preview" id="stops-preview"></div>
-
-    <div class="field-label" id="output-label">Google Maps URL</div>
+    <div class="converted-label-row">
+      <div class="field-label" style="margin-bottom:0" id="output-label">Converted URL</div>
+    </div>
     <div class="output-wrapper">
       <textarea id="output-url" readonly></textarea>
       <button class="copy-btn" id="copy-btn" onclick="copyOutput()">Copy</button>
     </div>
 
-    <div class="action-row">
-      <a id="open-btn" href="#" target="_blank" rel="noopener" class="open-btn" onclick="return handleOpen(event)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/>
-        </svg>
-        Open in maps
-      </a>
+    <div class="action-row" id="action-row">
+      <!-- populated by JS -->
     </div>
   </div>
 </div>
 
-<footer>Paste any Apple Maps or Google Maps directions link &amp; convert instantly. No data is sent anywhere.</footer>
+<footer>
+  No data is sent anywhere — all conversion happens in your browser.<br>
+  &copy; <span id="cy"></span> Joseph Karlan
+</footer>
 
 <script>
-  let currentMode = 'apple-to-google';
+  document.getElementById('cy').textContent = new Date().getFullYear();
 
-  function setMode(mode) {
-    currentMode = mode;
-    document.getElementById('tab-apple').className = mode === 'apple-to-google' ? 'toggle-btn active' : 'toggle-btn';
-    document.getElementById('tab-google').className = mode === 'google-to-apple' ? 'toggle-btn active' : 'toggle-btn';
-    document.getElementById('input-label').textContent = mode === 'apple-to-google' ? 'Apple Maps URL' : 'Google Maps URL';
-    document.getElementById('input-url').placeholder = mode === 'apple-to-google'
-      ? 'https://maps.apple.com/directions?source=...'
-      : 'https://www.google.com/maps/dir/...';
-    document.getElementById('input-url').value = '';
-    document.getElementById('output-section').style.display = 'none';
-    document.getElementById('error-box').style.display = 'none';
+  // SVG logos (inline so no external requests needed)
+  const APPLE_LOGO = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>`;
+
+  const GOOGLE_LOGO = `<svg viewBox="0 0 24 24" fill="none"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z" fill="#4285F4"/></svg>`;
+
+  const inputEl = document.getElementById('input-url');
+  let debounceTimer;
+
+  inputEl.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(tryConvert, 380);
+  });
+  inputEl.addEventListener('paste', () => {
+    clearTimeout(debounceTimer);
+    setTimeout(tryConvert, 0);
+  });
+
+  async function pasteFromClipboard() {
+    try {
+      const text = await navigator.clipboard.readText();
+      inputEl.value = text;
+      clearTimeout(debounceTimer);
+      tryConvert();
+    } catch {
+      inputEl.focus();
+    }
   }
 
   function showError(msg) {
     const el = document.getElementById('error-box');
     el.textContent = msg;
     el.style.display = 'block';
-    document.getElementById('output-section').style.display = 'none';
+    hideOutput();
+    setDetectBadge(null);
   }
 
   function hideError() {
     document.getElementById('error-box').style.display = 'none';
   }
 
+  function setDetectBadge(type) {
+    const badge = document.getElementById('detect-badge');
+    if (!type) {
+      badge.classList.remove('visible', 'badge-apple', 'badge-google');
+      return;
+    }
+    badge.innerHTML = type === 'apple'
+      ? `${APPLE_LOGO} Apple Maps detected`
+      : `${GOOGLE_LOGO} Google Maps detected`;
+    badge.className = `badge ${type === 'apple' ? 'badge-apple' : 'badge-google'}`;
+    requestAnimationFrame(() => requestAnimationFrame(() => badge.classList.add('visible')));
+  }
+
   function parseAppleUrl(url) {
     let params;
-    try {
-      params = new URL(url).searchParams;
-    } catch(e) { throw new Error('Invalid URL — could not parse.'); }
-    if (!url.includes('maps.apple.com')) throw new Error('This does not look like an Apple Maps URL.');
+    try { params = new URL(url).searchParams; } catch(e) { throw new Error('Invalid URL.'); }
     const source = params.get('source') || params.get('saddr');
     const dest = params.get('destination') || params.get('daddr');
     if (!source || !dest) throw new Error('Could not find source or destination in the Apple Maps URL.');
@@ -424,11 +401,10 @@
   }
 
   function parseGoogleUrl(url) {
-    if (!url.includes('google.com/maps')) throw new Error('This does not look like a Google Maps URL.');
     const match = url.match(/\/maps\/dir\/([^?#]+)/);
     if (!match) throw new Error('Could not find route in the URL. Make sure it is a /dir/ link.');
     const segments = match[1].split('/').map(s => decodeURIComponent(s.trim())).filter(s => {
-      if (!s || s.length === 0) return false;
+      if (!s) return false;
       if (/^@[-\d.,]+$/.test(s)) return false;
       if (/^\d{1,2}z$/.test(s)) return false;
       if (/^data=/.test(s)) return false;
@@ -458,53 +434,66 @@
     return url;
   }
 
-  function renderStops(stops) {
-    const preview = document.getElementById('stops-preview');
-    preview.innerHTML = '';
-    stops.forEach((stop, i) => {
-      const isOrigin = i === 0;
-      const isDest = i === stops.length - 1;
-      const typeClass = isOrigin ? 'dot-origin' : isDest ? 'dot-dest' : 'dot-waypoint';
-      const typeLabel = isOrigin ? 'Origin' : isDest ? 'Destination' : `Stop ${i}`;
-
-      if (i > 0) {
-        const connRow = document.createElement('div');
-        connRow.className = 'stop-row';
-        connRow.innerHTML = `<div class="stop-line"><div class="connector"></div></div><div></div>`;
-        preview.appendChild(connRow);
-      }
-
-      const row = document.createElement('div');
-      row.className = 'stop-row';
-      row.innerHTML = `
-        <div class="stop-line"><div class="stop-dot ${typeClass}"></div></div>
-        <div class="stop-info">
-          <div class="stop-type">${typeLabel}</div>
-          <div class="stop-name">${stop}</div>
-        </div>`;
-      preview.appendChild(row);
-    });
+  function showOutput() {
+    const el = document.getElementById('output-section');
+    el.style.display = 'block';
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('visible')));
   }
 
-  function convert() {
+  function hideOutput() {
+    const el = document.getElementById('output-section');
+    el.classList.remove('visible');
+    setTimeout(() => { if (!el.classList.contains('visible')) el.style.display = 'none'; }, 300);
+  }
+
+  function setActionButtons(appleUrl, googleUrl, sourceType) {
+    const row = document.getElementById('action-row');
+    // Primary = the converted target; secondary = the original (re-open)
+    const convertedIsApple = sourceType === 'google';
+
+    row.innerHTML = `
+      <a href="${googleUrl}" target="_blank" rel="noopener" class="open-btn${convertedIsApple ? '' : ' primary'}">
+        ${GOOGLE_LOGO} Open in Google Maps
+      </a>
+      <a href="${appleUrl}" target="_blank" rel="noopener" class="open-btn${convertedIsApple ? ' primary' : ''}">
+        ${APPLE_LOGO} Open in Apple Maps
+      </a>
+    `;
+  }
+
+  function tryConvert() {
     hideError();
-    const input = document.getElementById('input-url').value.trim();
-    if (!input) { showError('Please paste a URL first.'); return; }
+    const raw = inputEl.value.trim();
+    if (!raw) { hideOutput(); setDetectBadge(null); return; }
+
+    const isApple = raw.includes('maps.apple.com');
+    const isGoogle = raw.includes('google.com/maps');
+    if (!isApple && !isGoogle) { setDetectBadge(null); return; }
+
+    const sourceType = isApple ? 'apple' : 'google';
+    setDetectBadge(sourceType);
+
     try {
-      let parsed, result;
-      if (currentMode === 'apple-to-google') {
-        parsed = parseAppleUrl(input);
-        result = buildGoogleUrl(parsed.stops, parsed.mode);
-        document.getElementById('output-label').textContent = 'Google Maps URL';
+      let parsed, appleUrl, googleUrl, outputUrl, outputLabel;
+
+      if (isApple) {
+        parsed = parseAppleUrl(raw);
+        googleUrl = buildGoogleUrl(parsed.stops, parsed.mode);
+        appleUrl = raw; // keep original
+        outputUrl = googleUrl;
+        outputLabel = 'Google Maps URL';
       } else {
-        parsed = parseGoogleUrl(input);
-        result = buildAppleUrl(parsed.stops, parsed.mode);
-        document.getElementById('output-label').textContent = 'Apple Maps URL';
+        parsed = parseGoogleUrl(raw);
+        appleUrl = buildAppleUrl(parsed.stops, parsed.mode);
+        googleUrl = raw; // keep original
+        outputUrl = appleUrl;
+        outputLabel = 'Apple Maps URL';
       }
-      document.getElementById('output-url').value = result;
-      document.getElementById('open-btn').href = result;
-      renderStops(parsed.stops);
-      document.getElementById('output-section').style.display = 'block';
+
+      document.getElementById('output-label').textContent = outputLabel;
+      document.getElementById('output-url').value = outputUrl;
+      setActionButtons(appleUrl, googleUrl, sourceType);
+      showOutput();
     } catch(e) {
       showError(e.message);
     }
@@ -518,12 +507,6 @@
       btn.classList.add('copied');
       setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
     });
-  }
-
-  function handleOpen(e) {
-    const url = document.getElementById('open-btn').href;
-    if (!url || url === '#') { e.preventDefault(); return false; }
-    return true;
   }
 </script>
 </body>
