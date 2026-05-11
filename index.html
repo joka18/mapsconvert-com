@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maps Link Converter</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 36px;
+      max-width: 680px;
+      width: 100%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1d1d1f;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: #6e6e73;
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin-bottom: 8px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 14px;
+      border: 1.5px solid #d2d2d7;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #1d1d1f;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]:focus { border-color: #007aff; }
+
+    button {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+
+    button:hover { opacity: 0.85; }
+    button:active { opacity: 0.7; }
+
+    .btn-paste {
+      background: #007aff;
+      color: white;
+    }
+
+    .btn-convert {
+      width: 100%;
+      background: #1d1d1f;
+      color: white;
+      padding: 14px;
+      font-size: 15px;
+      border-radius: 12px;
+      margin-top: 4px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .badge-apple { background: #e8f4fd; color: #0071e3; }
+    .badge-google { background: #fce8e6; color: #ea4335; }
+    .badge-unknown { background: #f2f2f7; color: #6e6e73; }
+
+    .result-box {
+      margin-top: 28px;
+      padding: 20px;
+      background: #f5f5f7;
+      border-radius: 12px;
+      display: none;
+    }
+
+    .result-box.visible { display: block; }
+
+    .result-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6e6e73;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+
+    .result-url {
+      font-size: 13px;
+      color: #1d1d1f;
+      word-break: break-all;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-copy {
+      background: #34c759;
+      color: white;
+      flex: 1;
+    }
+
+    .btn-open {
+      background: #007aff;
+      color: white;
+      flex: 1;
+    }
+
+    .error {
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: #fff2f2;
+      border: 1px solid #ffb3b3;
+      border-radius: 10px;
+      color: #c0392b;
+      font-size: 14px;
+      display: none;
+    }
+
+    .error.visible { display: block; }
+
+    .detection-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      min-height: 28px;
+    }
+
+    .detection-label {
+      font-size: 13px;
+      color: #6e6e73;
+    }
+
+    .route-preview {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #3a3a3c;
+      line-height: 1.6;
+    }
+
+    .route-stop {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 0;
+    }
+
+    .stop-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    .dot-start { background: #34c759; }
+    .dot-mid { background: #ff9500; }
+    .dot-end { background: #ff3b30; }
+
+    .stop-line {
+      width: 2px;
+      height: 14px;
+      background: #d2d2d7;
+      margin-left: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>Maps Link Converter</h1>
+  <p class="subtitle">Convert directions between Apple Maps and Google Maps</p>
+
+  <label for="urlInput">Paste a Maps link</label>
+  <div class="input-row">
+    <input type="text" id="urlInput" placeholder="https://maps.apple.com/... or https://www.google.com/maps/..." />
+    <button class="btn-paste" onclick="pasteFromClipboard()">Paste</button>
+  </div>
+
+  <div class="detection-row">
+    <span class="detection-label" id="detectionLabel">Waiting for link…</span>
+    <span class="badge badge-unknown" id="detectionBadge" style="display:none"></span>
+  </div>
+
+  <div id="routePreview" class="route-preview" style="display:none"></div>
+
+  <button class="btn-convert" onclick="convert()">Convert ↔</button>
+
+  <div class="error" id="errorBox"></div>
+
+  <div class="result-box" id="resultBox">
+    <div class="result-label" id="resultLabel"></div>
+    <div class="result-url" id="resultUrl"></div>
+    <div class="action-row">
+      <button class="btn-copy" onclick="copyResult()">Copy Link</button>
+      <button class="btn-open" onclick="openResult()">Open in Maps</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let resultHref = '';
+
+  const input = document.getElementById('urlInput');
+  input.addEventListener('input', detectAndPreview);
+
+  async function pasteFromClipboard() {
+    try {
+      const text = await navigator.clipboard.readText();
+      input.value = text;
+      detectAndPreview();
+    } catch {
+      input.focus();
+      document.execCommand('paste');
+      detectAndPreview();
+    }
+  }
+
+  function detectType(url) {
+    if (url.includes('maps.apple.com')) return 'apple';
+    if (url.includes('google.com/maps')) return 'google';
+    return null;
+  }
+
+  function parseAppleUrl(url) {
+    const u = new URL(url);
+    const source = u.searchParams.get('source');
+    const destination = u.searchParams.get('destination');
+    const waypoints = u.searchParams.getAll('waypoint');
+    const mode = u.searchParams.get('mode') || 'driving';
+    if (!source || !destination) return null;
+    return { source, destination, waypoints, mode };
+  }
+
+  function parseGoogleUrl(url) {
+    // Format: /maps/dir/Place1/Place2/.../Place3/@lat,lng,zoom/data=...
+    const match = url.match(/\/maps\/dir\/([^@?#]+)/);
+    if (!match) return null;
+    const parts = match[1].split('/').map(p => decodeURIComponent(p.replace(/\+/g, ' ')).trim()).filter(Boolean);
+    if (parts.length < 2) return null;
+
+    // Extract travel mode from data param or URL
+    let mode = 'driving';
+    if (url.includes('!3e1')) mode = 'bicycling';
+    else if (url.includes('!3e2')) mode = 'walking';
+    else if (url.includes('!3e3')) mode = 'transit';
+
+    return {
+      source: parts[0],
+      destination: parts[parts.length - 1],
+      waypoints: parts.slice(1, -1),
+      mode
+    };
+  }
+
+  function appleToGoogle({ source, destination, waypoints, mode }) {
+    const modeMap = { driving: '0', walking: '2', transit: '3', bicycling: '1' };
+    const travelMode = modeMap[mode] || '0';
+    const stops = [source, ...waypoints, destination];
+    const path = stops.map(s => encodeURIComponent(s).replace(/%20/g, '+')).join('/');
+    // !3eN encodes travel mode in Google's data parameter
+    const dataMode = { driving: '0', bicycling: '1', walking: '2', transit: '3' }[mode] || '0';
+    return `https://www.google.com/maps/dir/${path}/data=!4m2!4m1!3e${dataMode}`;
+  }
+
+  function googleToApple({ source, destination, waypoints, mode }) {
+    const modeMap = { driving: 'driving', walking: 'walking', transit: 'transit', bicycling: 'cycling' };
+    const appleMode = modeMap[mode] || 'driving';
+    let url = `https://maps.apple.com/directions?source=${encodeURIComponent(source)}&destination=${encodeURIComponent(destination)}&mode=${appleMode}`;
+    for (const wp of waypoints) {
+      url += `&waypoint=${encodeURIComponent(wp)}`;
+    }
+    return url;
+  }
+
+  function formatStops(parsed) {
+    const stops = [parsed.source, ...parsed.waypoints, parsed.destination];
+    let html = '';
+    stops.forEach((stop, i) => {
+      const dotClass = i === 0 ? 'dot-start' : i === stops.length - 1 ? 'dot-end' : 'dot-mid';
+      html += `<div class="route-stop"><span class="stop-dot ${dotClass}"></span><span>${stop}</span></div>`;
+      if (i < stops.length - 1) html += `<div class="route-stop"><span class="stop-line"></span></div>`;
+    });
+    html += `<div style="margin-top:8px;font-size:12px;color:#6e6e73">Mode: ${parsed.mode}</div>`;
+    return html;
+  }
+
+  function detectAndPreview() {
+    const url = input.value.trim();
+    const badge = document.getElementById('detectionBadge');
+    const label = document.getElementById('detectionLabel');
+    const preview = document.getElementById('routePreview');
+    const errorBox = document.getElementById('errorBox');
+    const resultBox = document.getElementById('resultBox');
+
+    errorBox.classList.remove('visible');
+    resultBox.classList.remove('visible');
+
+    if (!url) {
+      label.textContent = 'Waiting for link…';
+      badge.style.display = 'none';
+      preview.style.display = 'none';
+      return;
+    }
+
+    const type = detectType(url);
+    if (!type) {
+      label.textContent = 'Not recognized';
+      badge.style.display = 'none';
+      preview.style.display = 'none';
+      return;
+    }
+
+    badge.style.display = 'inline-block';
+    if (type === 'apple') {
+      badge.textContent = 'Apple Maps';
+      badge.className = 'badge badge-apple';
+      label.textContent = 'Detected:';
+      const parsed = parseAppleUrl(url);
+      if (parsed) {
+        preview.innerHTML = formatStops(parsed);
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+      }
+    } else {
+      badge.textContent = 'Google Maps';
+      badge.className = 'badge badge-google';
+      label.textContent = 'Detected:';
+      const parsed = parseGoogleUrl(url);
+      if (parsed) {
+        preview.innerHTML = formatStops(parsed);
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+      }
+    }
+  }
+
+  function showError(msg) {
+    const errorBox = document.getElementById('errorBox');
+    errorBox.textContent = msg;
+    errorBox.classList.add('visible');
+    document.getElementById('resultBox').classList.remove('visible');
+  }
+
+  function convert() {
+    const url = input.value.trim();
+    const errorBox = document.getElementById('errorBox');
+    errorBox.classList.remove('visible');
+
+    if (!url) { showError('Please paste a Maps link first.'); return; }
+
+    let parsed, converted, labelText;
+
+    try {
+      const type = detectType(url);
+      if (type === 'apple') {
+        parsed = parseAppleUrl(url);
+        if (!parsed) { showError('Could not parse Apple Maps link. Make sure it includes source and destination.'); return; }
+        converted = appleToGoogle(parsed);
+        labelText = 'Google Maps link';
+      } else if (type === 'google') {
+        parsed = parseGoogleUrl(url);
+        if (!parsed) { showError('Could not parse Google Maps link. Make sure it is a directions link (/maps/dir/…).'); return; }
+        converted = googleToApple(parsed);
+        labelText = 'Apple Maps link';
+      } else {
+        showError('Link not recognized. Paste an Apple Maps or Google Maps directions URL.');
+        return;
+      }
+    } catch (e) {
+      showError('Error parsing link: ' + e.message);
+      return;
+    }
+
+    resultHref = converted;
+    document.getElementById('resultLabel').textContent = labelText;
+    document.getElementById('resultUrl').textContent = converted;
+    document.getElementById('resultBox').classList.add('visible');
+  }
+
+  async function copyResult() {
+    try {
+      await navigator.clipboard.writeText(resultHref);
+      const btn = document.querySelector('.btn-copy');
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = orig, 1500);
+    } catch {
+      prompt('Copy this link:', resultHref);
+    }
+  }
+
+  function openResult() {
+    window.open(resultHref, '_blank');
+  }
+</script>
+</body>
+</html>
