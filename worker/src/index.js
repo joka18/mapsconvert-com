@@ -27,7 +27,7 @@ export default {
     if (!ssrData) return assetRes;
 
     const { stops, mode, appleUrl, googleUrl } = ssrData;
-    const title = `${cleanPlace(stops[0])} to ${cleanPlace(stops[stops.length - 1])}`;
+    const title = routeTitle(stops);
     const description = 'Open in Apple Maps or Google Maps';
     const isShared = url.searchParams.get('shared') === 'true';
 
@@ -162,6 +162,13 @@ function renderMapCardsHtml(appleUrl, googleUrl) {
         </a>
       </div>
     </div>`).join('');
+}
+
+function routeTitle(stops) {
+  const from = cleanPlace(stops[0]);
+  const to   = cleanPlace(stops[stops.length - 1]);
+  const n    = stops.length - 2;
+  return n > 0 ? `${from} to ${to} with ${n} stop${n > 1 ? 's' : ''}` : `${from} to ${to}`;
 }
 
 // ── Routing ────────────────────────────────────────────────────────────────

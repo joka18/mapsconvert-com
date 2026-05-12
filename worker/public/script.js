@@ -1,6 +1,14 @@
 import { parseAppleUrl, parseGoogleUrl, buildAppleUrl, buildGoogleUrl, cleanPlace, extractUrlFromText } from './maps.js';
 
 document.getElementById('cy').textContent = new Date().getFullYear();
+const DEFAULT_TITLE = 'Maps URL Converter';
+
+function routeTitle(stops) {
+  const from = cleanPlace(stops[0]);
+  const to   = cleanPlace(stops[stops.length - 1]);
+  const n    = stops.length - 2;
+  return n > 0 ? `${from} to ${to} with ${n} stop${n > 1 ? 's' : ''}` : `${from} to ${to}`;
+}
 
 const GOOGLE_SHORT_HOSTS = ['maps.app.goo.gl', 'goo.gl', 'g.co'];
 let pendingRedirectUrl = '';
@@ -45,7 +53,7 @@ inputEl.addEventListener('paste', e => {
     const { stops, mode } = window.__SSR_DATA__;
     currentStops = stops;
     currentMode  = mode;
-    document.title = stops.length >= 2 ? `${cleanPlace(stops[0])} to ${cleanPlace(stops[stops.length - 1])}` : 'Maps URL Converter';
+    document.title = stops.length >= 2 ? routeTitle(stops) : DEFAULT_TITLE;
     return;
   }
 
@@ -68,7 +76,7 @@ window.resetAll = function() {
   hideRedirectBox();
   setTimeout(() => {
     pendingRedirectUrl = '';
-    document.title = 'Maps URL Converter';
+    document.title = DEFAULT_TITLE;
     inputEl.value = '';
     inputEl.readOnly = false;
     pasteBtn.style.display = '';
@@ -451,7 +459,7 @@ function tryConvert() {
     currentMode  = mode;
     renderRoute(stops);
     renderMapCards(appleUrl, googleUrl);
-    document.title = stops.length >= 2 ? `${cleanPlace(stops[0])} to ${cleanPlace(stops[stops.length - 1])}` : 'Maps URL Converter';
+    document.title = stops.length >= 2 ? routeTitle(stops) : DEFAULT_TITLE;
     history.replaceState(null, '', `${location.pathname}?url=${encodeURIComponent(raw)}`);
     document.querySelector('.input-wrap').style.display = 'none';
     showOutput();
