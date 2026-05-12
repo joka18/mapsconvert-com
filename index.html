@@ -83,6 +83,29 @@
       align-items: flex-start;
     }
 
+    .textarea-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .input-corner-spinner {
+      display: none;
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      width: 12px;
+      height: 12px;
+      border: 1.8px solid var(--muted);
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      opacity: 0.9;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .input-corner-spinner.visible { display: block; }
+
     .input-wrap textarea {
       flex: 1;
       min-height: 88px;
@@ -563,32 +586,26 @@
       color: var(--muted);
       align-items: center;
       gap: 10px;
+      position: relative;
     }
 
     .redirect-box.visible { display: flex; }
     .redirect-box svg { width: 15px; height: 15px; flex-shrink: 0; }
     .redirect-box-text { flex: 1; }
-
-    .resolve-btn {
-      flex-shrink: 0;
-      padding: 5px 12px;
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      background: var(--surface);
-      font-family: var(--sans);
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: var(--text);
-      cursor: pointer;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 5px;
+    .redirect-spinner {
+      display: none;
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 12px;
+      height: 12px;
+      border: 1.8px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      opacity: 0.8;
     }
-
-    .resolve-btn:hover { background: var(--border); }
-    .resolve-btn:disabled { opacity: 0.5; cursor: default; }
-    .resolve-btn svg { width: 12px; height: 12px; }
+    .redirect-spinner.visible { display: block; }
 
     .error-box {
       display: none;
@@ -635,7 +652,10 @@
 
   <!-- input -->
   <div class="input-wrap">
-    <textarea id="input-url" placeholder="Paste an Apple Maps or Google Maps directions link…"></textarea>
+    <div class="textarea-wrap">
+      <textarea id="input-url" placeholder="Paste an Apple Maps or Google Maps directions link…"></textarea>
+      <span class="input-corner-spinner" id="input-corner-spinner" aria-hidden="true"></span>
+    </div>
     <button class="paste-btn" onclick="pasteFromClipboard()" title="Paste from clipboard">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <rect x="9" y="2" width="6" height="4" rx="1"/>
@@ -646,20 +666,6 @@
   </div>
 
   <div class="error-box" id="error-box"></div>
-
-  <div class="redirect-box" id="redirect-box">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-    </svg>
-    <span class="redirect-box-text">This looks like a shortened or redirect link — it might lead to a Maps URL.</span>
-    <button class="resolve-btn" id="resolve-btn" onclick="followRedirect()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/>
-      </svg>
-      Follow redirect
-    </button>
-  </div>
 
   <div id="output-section">
     <!-- route summary -->
@@ -1164,24 +1170,11 @@
     return findMapsUrlInText(candidate);
   }
 
-  function hideRedirectBox() {
-    document.getElementById('redirect-box').classList.remove('visible');
-  }
+  function hideRedirectBox() { setRedirectLoading(false); }
 
-  function showRedirectBox(msg, { showButton = false, loading = false } = {}) {
-    hideError();
-    hideOutput();
-    const box = document.getElementById('redirect-box');
-    box.classList.add('visible');
-    document.querySelector('.redirect-box-text').textContent = msg || 'Following redirect…';
-    const btn = document.getElementById('resolve-btn');
-    btn.style.display = showButton ? 'flex' : 'none';
-    btn.disabled = !!loading;
-    btn.innerHTML = loading ? 'Following…' : `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/>
-      </svg>
-      Follow redirect`;
+  function setRedirectLoading(isLoading) {
+    const spin = document.getElementById('input-corner-spinner');
+    if (spin) spin.classList.toggle('visible', !!isLoading);
   }
 
   function withDebugParam(raw) {
@@ -1202,6 +1195,22 @@
     } finally {
       clearTimeout(timer);
     }
+  }
+
+  async function resolveViaCodeTabs(raw) {
+    const targets = [raw];
+    if (isGoogleShortLink(raw)) targets.push(withDebugParam(raw));
+    for (const target of targets) {
+      try {
+        const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`;
+        const res = await fetchWithTimeout(proxyUrl, {}, 15000);
+        if (!res.ok) continue;
+        const text = await res.text().catch(() => '');
+        const fromText = extractNestedMapsUrl(text);
+        if (fromText) return fromText;
+      } catch {}
+    }
+    return null;
   }
 
   async function resolveViaDirectFetch(raw) {
@@ -1232,22 +1241,24 @@
 
   async function autoFollowRedirect(raw, { manual = false } = {}) {
     pendingRedirectUrl = raw;
-    showRedirectBox('Following redirect…', { showButton: true, loading: true });
+    hideError();
+    hideOutput();
+    setRedirectLoading(true);
 
     const direct = extractNestedMapsUrl(raw);
     if (direct) {
-      hideRedirectBox();
       inputEl.value = direct;
       tryConvert();
       return;
     }
 
-    const resolvers = [resolveViaDirectFetch];
+    const resolvers = [resolveViaCodeTabs, resolveViaDirectFetch];
     for (const resolve of resolvers) {
       try {
         const finalUrl = await resolve(raw);
         if (finalUrl) {
           hideRedirectBox();
+          setRedirectLoading(false);
           inputEl.value = finalUrl;
           tryConvert();
           return;
@@ -1255,16 +1266,8 @@
       } catch {}
     }
 
-    const msg = manual
-      ? "Still couldn't resolve this in-browser (cross-origin restrictions). Open the short link, copy the final Maps URL, and paste it here."
-      : "Couldn't resolve automatically in-browser. Click Follow redirect to retry, or open the short link and paste the final Maps URL.";
-    showRedirectBox(msg, { showButton: true, loading: false });
-  }
-
-  function followRedirect() {
-    const raw = pendingRedirectUrl || inputEl.value.trim();
-    if (!raw || !looksLikeUrl(raw)) return;
-    autoFollowRedirect(raw, { manual: true });
+    setRedirectLoading(false);
+    showError('No route detected from this link.');
   }
 
   function tryConvert() {
@@ -1291,7 +1294,8 @@
     if (!isApple && !isGoogle) {
       if (looksLikeUrl(raw)) {
         pendingRedirectUrl = raw;
-        showRedirectBox('This is not a full Maps route link yet. Click Follow redirect to resolve it.', { showButton: true, loading: false });
+        setRedirectLoading(true);
+        autoFollowRedirect(raw);
       }
       return;
     }
