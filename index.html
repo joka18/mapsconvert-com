@@ -1341,12 +1341,35 @@
     if (!raw) return;
     const shareUrl = `${location.origin}${location.pathname}?url=${encodeURIComponent(raw)}&shared=true`;
     const btn = document.getElementById('share-btn');
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      const orig = btn.innerHTML;
-      btn.textContent = 'Link copied!';
+    const title = currentStops.length >= 2
+      ? `${cleanPlace(currentStops[0])} to ${cleanPlace(currentStops[currentStops.length - 1])}`
+      : 'Shared Maps route';
+    const shareText = `${title}\n${shareUrl}`;
+    const orig = btn.innerHTML;
+
+    const markCopied = (label) => {
+      btn.textContent = label;
       btn.classList.add('copied');
       setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
-    });
+    };
+
+    (async () => {
+      try {
+        if (navigator.share) {
+          await navigator.share({
+            title,
+            text: title,
+            url: shareUrl
+          });
+          markCopied('Shared!');
+          return;
+        }
+      } catch {}
+
+      navigator.clipboard.writeText(shareText).then(() => {
+        markCopied('Copied with title!');
+      });
+    })();
   }
 </script>
 </body>
