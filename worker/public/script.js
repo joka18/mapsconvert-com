@@ -82,16 +82,9 @@ window.resetAll = function() {
     }));
     document.getElementById('route-rail').innerHTML = '';
     document.getElementById('map-cards').innerHTML = '';
-    const shareBtn = document.getElementById('share-btn');
-    if (shareBtn) {
-      shareBtn.classList.remove('copied');
-      shareBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-        </svg>
-        Copy share link`;
+    for (const id of ['share-btn', 'copy-link-btn']) {
+      const btn = document.getElementById(id);
+      if (btn) btn.classList.remove('copied');
     }
     document.getElementById('shared-banner').classList.remove('visible');
     history.replaceState(null, '', location.pathname);
@@ -120,17 +113,37 @@ window.copyCard = function(btn, url) {
   });
 };
 
-window.shareRoute = function() {
+function getShareUrl() {
   const raw = inputEl.value.trim();
-  if (!raw) return;
-  const shareUrl = `${location.origin}${location.pathname}?url=${encodeURIComponent(raw)}&shared=true`;
-  const btn = document.getElementById('share-btn');
-  const title = currentStops.length >= 2
+  return raw ? `${location.origin}${location.pathname}?url=${encodeURIComponent(raw)}&shared=true` : null;
+}
+
+function getShareTitle() {
+  return currentStops.length >= 2
     ? `${cleanPlace(currentStops[0])} to ${cleanPlace(currentStops[currentStops.length - 1])}`
     : 'Shared Maps route';
+}
+
+window.copyShareLink = function() {
+  const shareUrl = getShareUrl();
+  if (!shareUrl) return;
+  const btn = document.getElementById('copy-link-btn');
+  const orig = btn.innerHTML;
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+  });
+};
+
+window.shareRoute = function() {
+  const shareUrl = getShareUrl();
+  if (!shareUrl) return;
+  const title = getShareTitle();
+  const btn = document.getElementById('share-btn');
   const orig = btn.innerHTML;
 
-  const markCopied = (label) => {
+  const markDone = (label) => {
     btn.textContent = label;
     btn.classList.add('copied');
     setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
@@ -140,11 +153,11 @@ window.shareRoute = function() {
     try {
       if (navigator.share) {
         await navigator.share({ title, text: title, url: shareUrl });
-        markCopied('Shared!');
+        markDone('Shared!');
         return;
       }
     } catch {}
-    navigator.clipboard.writeText(`${title}\n${shareUrl}`).then(() => markCopied('Copied with title!'));
+    navigator.clipboard.writeText(`${title}\n${shareUrl}`).then(() => markDone('Copied!'));
   })();
 };
 
@@ -279,7 +292,8 @@ function escAttr(s) {
 function showOutput() {
   const el = document.getElementById('output-section');
   el.style.display = 'block';
-  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('visible')));
+  void el.offsetHeight; // force reflow so transition fires reliably
+  el.classList.add('visible');
 }
 
 function hideOutput() {

@@ -37,12 +37,15 @@ export default {
       })
       .on('head', {
         element(el) {
+          const origin = new URL(request.url).origin;
           el.append(
             `<meta property="og:title" content="${esc(title)}">` +
             `<meta property="og:description" content="${esc(description)}">` +
             `<meta property="og:type" content="website">` +
-            `<meta name="twitter:card" content="summary">` +
+            `<meta property="og:image" content="${origin}/og-image.svg">` +
+            `<meta name="twitter:card" content="summary_large_image">` +
             `<meta name="twitter:title" content="${esc(title)}">` +
+            `<meta name="twitter:image" content="${origin}/og-image.svg">` +
             `<script>window.__SSR_DATA__=${JSON.stringify(ssrData)};</script>`,
             { html: true }
           );

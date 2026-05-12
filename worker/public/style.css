@@ -388,8 +388,6 @@ footer { margin-top: 2.5rem; font-size: 0.75rem; color: var(--muted); text-align
 @media (max-width: 640px) {
   body { padding: 1.5rem 0.9rem 3rem; }
   .card { padding: 1rem; border-radius: 14px; }
-  .input-wrap { flex-direction: column; }
-  .paste-btn { width: 100%; height: 88px; flex-direction: row; border-radius: 10px; }
   .route-rail { padding: 12px 10px 10px; }
   .rail-name { font-size: 0.82rem; }
   .rail-stops-pill { font-size: 0.68rem; padding: 4px 8px; }
