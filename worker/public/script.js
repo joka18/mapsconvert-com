@@ -7,7 +7,7 @@ function routeTitle(stops) {
   const from = cleanPlace(stops[0]);
   const to   = cleanPlace(stops[stops.length - 1]);
   const n    = stops.length - 2;
-  return n > 0 ? `${from} to ${to} with ${n} stop${n > 1 ? 's' : ''}` : `${from} to ${to}`;
+  return n > 0 ? `${from} to ${to} with ${n} stops` : `${from} to ${to}`;
 }
 
 const GOOGLE_SHORT_HOSTS = ['maps.app.goo.gl', 'goo.gl', 'g.co'];

@@ -35,16 +35,28 @@ export default {
       .on('title', {
         element(el) { el.setInnerContent(title); }
       })
+      .on('meta[property="og:title"]', {
+        element(el) { el.setAttribute('content', title); }
+      })
+      .on('meta[property="og:description"]', {
+        element(el) { el.setAttribute('content', description); }
+      })
+      .on('meta[name="twitter:title"]', {
+        element(el) { el.setAttribute('content', title); }
+      })
+      .on('meta[name="twitter:description"]', {
+        element(el) { el.setAttribute('content', description); }
+      })
+      .on('meta[name="description"]', {
+        element(el) { el.setAttribute('content', description); }
+      })
       .on('head', {
         element(el) {
           const origin = new URL(request.url).origin;
           el.append(
-            `<meta property="og:title" content="${esc(title)}">` +
-            `<meta property="og:description" content="${esc(description)}">` +
-            `<meta property="og:type" content="website">` +
             `<meta property="og:image" content="${origin}/og-image.svg">` +
             `<meta name="twitter:card" content="summary_large_image">` +
-            `<meta name="twitter:title" content="${esc(title)}">` +
+            `<meta name="twitter:description" content="${esc(description)}">` +
             `<meta name="twitter:image" content="${origin}/og-image.svg">` +
             `<script>window.__SSR_DATA__=${JSON.stringify(ssrData)};</script>`,
             { html: true }
@@ -168,7 +180,7 @@ function routeTitle(stops) {
   const from = cleanPlace(stops[0]);
   const to   = cleanPlace(stops[stops.length - 1]);
   const n    = stops.length - 2;
-  return n > 0 ? `${from} to ${to} with ${n} stop${n > 1 ? 's' : ''}` : `${from} to ${to}`;
+  return n > 0 ? `${from} to ${to} with ${n} stops` : `${from} to ${to}`;
 }
 
 // ── Routing ────────────────────────────────────────────────────────────────
