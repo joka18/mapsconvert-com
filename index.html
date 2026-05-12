@@ -218,39 +218,95 @@
 
     .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
 
-    /* open buttons row */
-    .open-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 1rem;
+    /* map cards */
+    .map-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 1.25rem;
     }
 
-    .open-btn {
-      padding: 10px 8px;
+    .map-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      background: transparent;
-      font-family: var(--sans);
-      font-size: 0.78rem;
-      font-weight: 400;
-      color: var(--text);
-      cursor: pointer;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      transition: box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .map-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.1); border-color: #c4c0b8; }
+
+    .map-card-logo {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+
+    .map-card-logo.apple  { background: #000; }
+    .map-card-logo.google { background: #fff; border: 1px solid var(--border); }
+    .map-card-logo img, .map-card-logo svg { width: 16px; height: 16px; }
+
+    .map-card-url {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+    }
+
+    .map-card-platform {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .map-card-link {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      display: block;
+      mask-image: linear-gradient(to right, black 60%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, black 60%, transparent 100%);
+    }
+
+    .map-card-actions {
+      display: flex;
       gap: 6px;
-      transition: background 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .map-card-btn {
+      padding: 5px 11px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface2);
+      font-family: var(--sans);
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
       text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
       white-space: nowrap;
     }
 
-    .open-btn:hover { background: var(--surface2); border-color: #c4c0b8; }
-    .open-btn img, .open-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
-
-    @media (max-width: 480px) {
-      .open-row { grid-template-columns: 1fr; }
-    }
+    .map-card-btn:hover { background: var(--border); }
+    .map-card-btn.copied { color: var(--green); border-color: var(--green); }
+    .map-card-btn svg { width: 11px; height: 11px; opacity: 0.6; }
 
     /* convert another */
     .convert-another-btn {
@@ -310,6 +366,11 @@
     .route-rail {
       display: flex;
       flex-direction: column;
+      gap: 0;
+      padding: 14px 14px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: linear-gradient(180deg, #fdfcf9 0%, #f7f4ee 100%);
     }
 
     .rail-row {
@@ -319,41 +380,59 @@
     }
 
     /* left track column */
-    .rail-track {
-      display: flex;
-      flex-direction: column;
+    .rail-track,
+    .rail-stops-track {
+      display: grid;
+      grid-template-rows: 1fr auto 1fr;
       align-items: center;
+      justify-items: center;
       width: 16px;
       flex-shrink: 0;
+      min-height: 38px;
     }
 
-    .rail-dot {
+    .rail-dot,
+    .rail-node {
       width: 11px;
       height: 11px;
       border-radius: 50%;
       flex-shrink: 0;
-      margin-top: 5px;
+      grid-row: 2;
+    }
+
+    .rail-node {
+      width: 2px;
+      background: var(--border);
+      border-radius: 999px;
     }
 
     .rail-dot.origin { background: var(--green); }
-    .rail-dot.dest   { background: var(--accent); }
+    .rail-dot.dest   { background: var(--green); }
     .rail-dot.via    { background: var(--amber); }
 
     .rail-line {
       width: 2px;
-      flex: 1;
       background: var(--border);
-      min-height: 10px;
+      min-height: 8px;
+      height: 100%;
     }
+
+    .rail-line.top { grid-row: 1; }
+    .rail-line.bottom { grid-row: 3; }
+    .rail-line.hidden { visibility: hidden; }
 
     /* stop content */
     .rail-content {
       flex: 1;
-      padding-bottom: 12px;
       min-width: 0;
+      padding: 0 0 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
     }
 
     .rail-content.last { padding-bottom: 0; }
+    .rail-content.no-pad { padding-bottom: 0; }
 
     .rail-label {
       font-size: 0.62rem;
@@ -375,23 +454,18 @@
     /* stops pill — sits in the track between origin and dest */
     .rail-stops-row {
       display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .rail-stops-track {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 16px;
-      flex-shrink: 0;
+      align-items: stretch;
+      gap: 8px;
+      padding: 0;
+      max-height: 28px;
     }
 
     .rail-stops-pill {
       display: inline-flex;
       align-items: center;
+      align-self: center;
       gap: 4px;
-      padding: 3px 10px 3px 8px;
+      padding: 1px 8px 1px 6px;
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -401,7 +475,7 @@
       cursor: pointer;
       transition: all 0.15s;
       user-select: none;
-      margin: 2px 0;
+      margin: 0;
     }
 
     .rail-stops-pill:hover { background: var(--border); color: var(--text); }
@@ -417,9 +491,38 @@
     .rail-waypoints {
       display: none;
       flex-direction: column;
+      margin: 0;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
     }
 
     .rail-waypoints.open { display: flex; }
+
+    .rail-waypoints .rail-content { padding-bottom: 10px; }
+
+    @media (max-width: 640px) {
+      body { padding: 1.5rem 0.9rem 3rem; }
+      .card { padding: 1rem; border-radius: 14px; }
+      .input-wrap { flex-direction: column; }
+      .paste-btn {
+        width: 100%;
+        height: 42px;
+        flex-direction: row;
+        border-radius: 10px;
+      }
+      .route-rail { padding: 12px 10px 10px; }
+      .rail-name { font-size: 0.82rem; }
+      .rail-stops-pill { font-size: 0.68rem; padding: 4px 8px; }
+      .share-strip {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .share-btn {
+        justify-content: center;
+      }
+    }
 
     /* redirect hint */
     .redirect-box {
@@ -537,13 +640,13 @@
 
     <hr class="divider" />
 
-    <!-- open buttons -->
-    <div class="open-row" id="open-row">
+    <!-- map cards -->
+    <div class="map-cards" id="map-cards">
       <!-- populated by JS -->
     </div>
 
     <!-- share + convert another -->
-    <div class="share-strip">
+    <div class="share-strip" style="margin-top:1rem">
       <span class="share-strip-label">Share this route with anyone</span>
       <button class="share-btn" id="share-btn" onclick="shareRoute()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -557,28 +660,6 @@
 
     <button class="convert-another-btn" onclick="resetAll()">Convert a different link</button>
 
-    <!-- url strips -->
-    <hr class="divider" />
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      <div class="url-strip" id="input-strip">
-        <div class="url-strip-header" id="input-strip-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          Source
-        </div>
-        <div class="url-strip-body">
-          <span class="url-strip-text" id="input-strip-text"></span>
-          <button class="url-strip-copy" onclick="copyStrip('input', this)">Copy</button>
-        </div>
-      </div>
-
-      <div class="url-strip" id="output-strip">
-        <div class="url-strip-header" id="output-strip-label">Converted</div>
-        <div class="url-strip-body">
-          <span class="url-strip-text" id="output-strip-text"></span>
-          <button class="url-strip-copy" onclick="copyStrip('output', this)">Copy</button>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -631,10 +712,24 @@
   }
 
   function resetAll() {
+    document.title = 'Maps URL Converter';
     inputEl.value = '';
     inputEl.readOnly = false;
     pasteBtn.style.display = '';
     document.querySelector('.input-wrap').style.display = '';
+    document.getElementById('route-rail').innerHTML = '';
+    document.getElementById('map-cards').innerHTML = '';
+    const shareBtn = document.getElementById('share-btn');
+    if (shareBtn) {
+      shareBtn.classList.remove('copied');
+      shareBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+        Copy share link`;
+    }
     hideOutput();
     hideError();
     hideRedirectBox();
@@ -654,20 +749,43 @@
     document.getElementById('error-box').style.display = 'none';
   }
 
-  function setInputStrip(type, url) {
-    const strip = document.getElementById('input-strip');
-    const label = document.getElementById('input-strip-label');
-    strip.className = 'url-strip' + (type ? ' ' + type : '');
-    label.innerHTML = type === 'apple' ? `${APPLE_LOGO} Apple Maps` : `${GOOGLE_LOGO} Google Maps`;
-    document.getElementById('input-strip-text').textContent = url;
+  function renderMapCards(appleUrl, googleUrl) {
+    const container = document.getElementById('map-cards');
+    container.innerHTML = '';
+    [
+      { type: 'apple',  label: 'Apple Maps',  url: appleUrl  },
+      { type: 'google', label: 'Google Maps', url: googleUrl },
+    ].forEach(({ type, label, url }) => {
+      const logo = type === 'apple'
+        ? `<svg viewBox="0 0 24 24" fill="white" width="16" height="16"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>`
+        : `<img src="https://cdn.simpleicons.org/google/1a1916" width="16" height="16" alt="Google" />`;
+
+      const card = document.createElement('div');
+      card.className = 'map-card';
+      card.innerHTML = `
+        <div class="map-card-logo ${type}">${logo}</div>
+        <div class="map-card-url">
+          <div class="map-card-platform">${label}</div>
+          <span class="map-card-link">${url}</span>
+        </div>
+        <div class="map-card-actions">
+          <button class="map-card-btn" onclick="copyCard(this, '${escAttr(url)}')">Copy</button>
+          <a class="map-card-btn" href="${escAttr(url)}" target="_blank" rel="noopener">
+            Open
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>`;
+      container.appendChild(card);
+    });
   }
 
-  function setOutputStrip(type, url) {
-    const strip = document.getElementById('output-strip');
-    const label = document.getElementById('output-strip-label');
-    strip.className = 'url-strip' + (type ? ' ' + type : '');
-    label.innerHTML = type === 'apple' ? `${APPLE_LOGO} Apple Maps` : `${GOOGLE_LOGO} Google Maps`;
-    document.getElementById('output-strip-text').textContent = url;
+  function copyCard(btn, url) {
+    navigator.clipboard.writeText(url).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1800);
+    });
   }
 
   function parseAppleUrl(url) {
@@ -694,6 +812,7 @@
       if (/^data=/.test(s)) return false;
       return true;
     });
+    segments.pop();
     if (segments.length < 2) throw new Error('Found fewer than 2 stops. Make sure the URL includes readable place names.');
     let mode = 'driving';
     if (url.includes('!3e1')) mode = 'walking';
@@ -730,16 +849,17 @@
     const rail      = document.getElementById('route-rail');
     rail.innerHTML  = '';
 
-    function makeRow(dotClass, label, name, isLast) {
-      // track column: dot on top, line below (unless last)
+    function makeRow(dotClass, label, name, { showTop = false, showBottom = false, isLast = false, noBottomPad = false } = {}) {
       const row = document.createElement('div');
       row.className = 'rail-row';
+      const contentClass = isLast ? ' last' : noBottomPad ? ' no-pad' : '';
       row.innerHTML = `
         <div class="rail-track">
+          <div class="rail-line top${showTop ? '' : ' hidden'}"></div>
           <div class="rail-dot ${dotClass}"></div>
-          ${isLast ? '' : '<div class="rail-line"></div>'}
+          <div class="rail-line bottom${showBottom ? '' : ' hidden'}"></div>
         </div>
-        <div class="rail-content${isLast ? ' last' : ''}">
+        <div class="rail-content${contentClass}">
           <div class="rail-label">${label}</div>
           <div class="rail-name">${name}</div>
         </div>`;
@@ -748,20 +868,36 @@
 
     if (waypoints.length === 0) {
       // Simple: origin → dest
-      rail.appendChild(makeRow('origin', 'From', origin, false));
-      rail.appendChild(makeRow('dest',   'To',   dest,   true));
+      rail.appendChild(makeRow('origin', 'From', origin, { showBottom: true }));
+      rail.appendChild(makeRow('dest',   'To',   dest,   { showTop: true, isLast: true }));
+    } else if (waypoints.length === 1) {
+      // Single waypoint: show all three rows, no collapse
+      rail.appendChild(makeRow('origin', 'From', origin, { showBottom: true }));
+      const inner = document.createElement('div');
+      inner.className = 'rail-row';
+      inner.innerHTML = `
+        <div class="rail-track">
+          <div class="rail-line top"></div>
+          <div class="rail-dot via"></div>
+          <div class="rail-line bottom"></div>
+        </div>
+        <div class="rail-content">
+          <div class="rail-name">${waypoints[0]}</div>
+        </div>`;
+      rail.appendChild(inner);
+      rail.appendChild(makeRow('dest', 'To', dest, { showTop: true, isLast: true }));
     } else {
-      // Origin row (line continues down into the pill)
-      rail.appendChild(makeRow('origin', 'From', origin, false));
+      // Multiple waypoints: origin, collapse pill, expandable waypoints, dest
+      rail.appendChild(makeRow('origin', 'From', origin, { showBottom: true, noBottomPad: true }));
 
-      // Stops pill row — line above (already from origin row), pill, line below
       const n = waypoints.length;
       const pillRow = document.createElement('div');
       pillRow.className = 'rail-stops-row';
       pillRow.innerHTML = `
-        <div class="rail-stops-track">
-          <div class="rail-line"></div>
-          <div class="rail-line"></div>
+        <div class="rail-stops-track rail-track-node">
+          <div class="rail-line top"></div>
+          <div class="rail-node"></div>
+          <div class="rail-line bottom"></div>
         </div>
         <button class="rail-stops-pill" id="stops-pill" onclick="toggleStops()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -769,10 +905,6 @@
         </button>`;
       rail.appendChild(pillRow);
 
-      // Waypoints (hidden by default)
-      const wrapRow = document.createElement('div');
-      wrapRow.className = 'rail-stops-row';
-      wrapRow.innerHTML = `<div style="width:16px;flex-shrink:0"></div>`;
       const waypointsEl = document.createElement('div');
       waypointsEl.className = 'rail-waypoints';
       waypointsEl.id = 'waypoints-detail';
@@ -781,20 +913,18 @@
         inner.className = 'rail-row';
         inner.innerHTML = `
           <div class="rail-track">
+            <div class="rail-line top"></div>
             <div class="rail-dot via"></div>
-            <div class="rail-line"></div>
+            <div class="rail-line bottom"></div>
           </div>
           <div class="rail-content">
-            <div class="rail-label">Via</div>
             <div class="rail-name">${wp}</div>
           </div>`;
         waypointsEl.appendChild(inner);
       });
-      wrapRow.appendChild(waypointsEl);
-      rail.appendChild(wrapRow);
+      rail.appendChild(waypointsEl);
 
-      // Dest
-      rail.appendChild(makeRow('dest', 'To', dest, true));
+      rail.appendChild(makeRow('dest', 'To', dest, { showTop: true, isLast: true }));
     }
   }
 
@@ -837,17 +967,25 @@
     setTimeout(() => { if (!el.classList.contains('visible')) el.style.display = 'none'; }, 300);
   }
 
-  const KNOWN_GOOGLE_SHORT = ['maps.app.goo.gl', 'goo.gl'];
 
-  function looksLikeUrl(s) {
-    try { new URL(s); return true; } catch { return false; }
+
+  function isGoogleMaps(url) {
+    try { return new URL(url).hostname.includes('google.com') && url.includes('/maps'); } catch { return false; }
   }
 
-  function isKnownGoogleShort(url) {
+  function isFullAppleMaps(url) {
     try {
-      const h = new URL(url).hostname;
-      return KNOWN_GOOGLE_SHORT.some(d => h === d || h.endsWith('.' + d));
+      const u = new URL(url);
+      return u.hostname === 'maps.apple.com' && (u.pathname.includes('directions') || u.searchParams.has('source') || u.searchParams.has('destination') || u.searchParams.has('daddr'));
     } catch { return false; }
+  }
+
+  function isAppleShortLink(url) {
+    try { const u = new URL(url); return u.hostname === 'maps.apple.com' && !isFullAppleMaps(url); } catch { return false; }
+  }
+
+  function isGoogleShortLink(url) {
+    try { return new URL(url).hostname === 'maps.app.goo.gl'; } catch { return false; }
   }
 
   function hideRedirectBox() {
@@ -864,25 +1002,49 @@
     btn.style.display = 'none';
   }
 
+  function isGoogleMaps(url) {
+    try { return new URL(url).hostname.includes('google.com') && url.includes('/maps'); } catch { return false; }
+  }
+
+  function isAppleHostname(hostname) {
+    return hostname === 'maps.apple.com' || hostname === 'maps.apple';
+  }
+
+  function isFullAppleMaps(url) {
+    try {
+      const u = new URL(url);
+      return isAppleHostname(u.hostname) && (
+        u.pathname.includes('directions') ||
+        u.searchParams.has('source') ||
+        u.searchParams.has('destination') ||
+        u.searchParams.has('daddr')
+      );
+    } catch { return false; }
+  }
+
+  function isAppleShortLink(url) {
+    try { const u = new URL(url); return isAppleHostname(u.hostname) && !isFullAppleMaps(url); } catch { return false; }
+  }
+
+  function isGoogleShortLink(url) {
+    try { return new URL(url).hostname === 'maps.app.goo.gl'; } catch { return false; }
+  }
+
   async function autoFollowRedirect(raw) {
     showRedirectBox('Following redirect…');
-    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(raw)}`;
     try {
-      const res = await fetch(proxyUrl, { redirect: 'follow' });
-      const finalUrl = res.headers.get('x-final-url') || res.url;
-      if (finalUrl && finalUrl !== proxyUrl) {
-        const isApple  = finalUrl.includes('maps.apple.com');
-        const isGoogle = finalUrl.includes('google.com/maps');
-        if (isApple || isGoogle) {
-          hideRedirectBox();
-          inputEl.value = finalUrl;
-          tryConvert();
-          return;
-        }
+      const res  = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(raw)}`);
+      const data = await res.json();
+      const finalUrl = data?.status?.url;
+      if (finalUrl && (isGoogleMaps(finalUrl) || isFullAppleMaps(finalUrl))) {
+        hideRedirectBox();
+        inputEl.value = finalUrl;
+        tryConvert();
+        return;
       }
       showRedirectBox("Couldn't resolve this link to a Maps URL. Try opening it first and pasting the final URL.");
     } catch {
-      showRedirectBox("Network error following redirect. Open the link manually and paste the Maps URL here.");
+      showRedirectBox("Couldn't follow this link — try opening it and pasting the final Maps URL here.");
     }
   }
 
@@ -892,27 +1054,22 @@
     const raw = inputEl.value.trim();
     if (!raw) { hideOutput(); return; }
 
-    // Accept own share links — extract the ?url= param
+    // Type 5: any URL with a ?url= param — extract and recurse
     try {
-      const u = new URL(raw);
-      if (u.hostname === location.hostname || raw.includes(location.hostname)) {
-        const inner = u.searchParams.get('url');
-        if (inner) { inputEl.value = inner; tryConvert(); return; }
-      }
-      // Also catch any URL with a ?url= param pointing to a maps link
-      const innerUrl = u.searchParams.get('url');
-      if (innerUrl && (innerUrl.includes('maps.apple.com') || innerUrl.includes('google.com/maps'))) {
-        inputEl.value = innerUrl; tryConvert(); return;
-      }
+      const inner = new URL(raw).searchParams.get('url');
+      if (inner) { inputEl.value = inner; tryConvert(); return; }
     } catch {}
 
-    const isApple  = raw.includes('maps.apple.com');
-    const isGoogle = raw.includes('google.com/maps') || isKnownGoogleShort(raw);
+    // Type 4: maps.app.goo.gl short link → follow redirect
+    if (isGoogleShortLink(raw)) { autoFollowRedirect(raw); return; }
 
-    if (!isApple && !isGoogle) {
-      if (looksLikeUrl(raw)) autoFollowRedirect(raw);
-      return;
-    }
+    // Type 3: maps.apple.com share/short link (not a full directions URL) → follow redirect
+    if (isAppleShortLink(raw)) { autoFollowRedirect(raw); return; }
+
+    // Type 1: Regular Google Maps  /  Type 2: Regular Apple Maps (full directions URL)
+    const isApple  = isFullAppleMaps(raw);
+    const isGoogle = isGoogleMaps(raw);
+    if (!isApple && !isGoogle) return; // unsupported — ignore silently
 
     const sourceType = isApple ? 'apple' : 'google';
 
@@ -932,10 +1089,10 @@
         outputType = 'apple';
       }
 
-      setInputStrip(sourceType, raw);
-      setOutputStrip(outputType, outputUrl);
-      renderOpenButtons(appleUrl, googleUrl);
+      renderMapCards(appleUrl, googleUrl);
       renderRoute(parsed.stops);
+      const stops = parsed.stops;
+      document.title = stops.length >= 2 ? `${cleanPlace(stops[0])} to ${cleanPlace(stops[stops.length - 1])}` : 'Maps URL Converter';
       history.replaceState(null, '', `${location.pathname}?url=${encodeURIComponent(raw)}`);
       document.querySelector('.input-wrap').style.display = 'none';
       showOutput();
@@ -944,15 +1101,6 @@
     }
   }
 
-  function copyStrip(which, btn) {
-    const val = document.getElementById(which === 'input' ? 'input-strip-text' : 'output-strip-text').textContent;
-    navigator.clipboard.writeText(val).then(() => {
-      const orig = btn.textContent;
-      btn.textContent = 'Copied!';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1800);
-    });
-  }
 
   function shareRoute() {
     const raw = inputEl.value.trim();
