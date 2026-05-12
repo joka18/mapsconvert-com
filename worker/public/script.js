@@ -41,14 +41,11 @@ inputEl.addEventListener('paste', e => {
   }
 
   if (window.__SSR_DATA__) {
-    const { stops, mode, appleUrl, googleUrl } = window.__SSR_DATA__;
+    // Worker already rendered the HTML — just hydrate state
+    const { stops, mode } = window.__SSR_DATA__;
     currentStops = stops;
     currentMode  = mode;
     document.title = stops.length >= 2 ? `${cleanPlace(stops[0])} to ${cleanPlace(stops[stops.length - 1])}` : 'Maps URL Converter';
-    renderRoute(stops);
-    renderMapCards(appleUrl, googleUrl);
-    document.querySelector('.input-wrap').style.display = 'none';
-    showOutput();
     return;
   }
 
