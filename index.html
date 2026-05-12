@@ -480,6 +480,25 @@
 
     .rail-stops-pill:hover { background: var(--border); color: var(--text); }
 
+    .rail-remove-btn {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      border: none;
+      background: transparent;
+      color: var(--accent);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      padding: 0;
+      transition: background 0.12s, color 0.12s;
+      align-self: center;
+    }
+    .rail-remove-btn:hover { background: #fde8e0; color: #9c2f10; }
+    .rail-remove-btn svg { width: 12px; height: 12px; }
+
     .rail-stops-pill svg {
       width: 10px;
       height: 10px;
@@ -688,6 +707,8 @@
   const inputEl = document.getElementById('input-url');
   const pasteBtn = document.querySelector('.paste-btn');
   let debounceTimer;
+  let currentStops = [];
+  let currentMode  = 'driving';
 
   inputEl.addEventListener('input', () => {
     clearTimeout(debounceTimer);
@@ -823,27 +844,55 @@
   }
 
   function parseGoogleUrl(url) {
-    const match = url.match(/\/maps\/dir\/([^?#]+)/);
-    if (!match) throw new Error('Could not find route in the URL. Make sure it is a /dir/ link.');
-    const segments = match[1].split('/').map(s => decodeURIComponent(s.trim())).filter(s => {
+    let u;
+    try { u = new URL(url); } catch { throw new Error('Invalid Google Maps URL.'); }
+    if (!u.pathname.includes('/maps/dir')) {
+      throw new Error('Could not find route in the URL. Make sure it is a /dir/ link.');
+    }
+
+    const pathnameMatch = u.pathname.match(/\/maps\/dir\/([^?#]+)/);
+    const segments = pathnameMatch
+      ? pathnameMatch[1].split('/').map(s => decodeURIComponent(s.trim()))
+      : [];
+
+    let stops = segments.filter(s => {
       if (!s) return false;
-      if (/^@[-\d.,]+$/.test(s)) return false;
-      if (/^\d{1,2}z$/.test(s)) return false;
-      if (/^data=/.test(s)) return false;
+      if (/^@/i.test(s)) return false;
+      if (/^\d{1,2}z$/i.test(s)) return false;
+      if (/^data=|^data!/i.test(s)) return false;
+      if (s === 'dir' || s === 'maps') return false;
       return true;
     });
-    segments.pop();
-    if (segments.length < 2) throw new Error('Found fewer than 2 stops. Make sure the URL includes readable place names.');
+
+    // Query-style Google directions URLs: /maps/dir/?api=1&origin=...&destination=...&waypoints=...
+    if (stops.length < 2) {
+      const origin = u.searchParams.get('origin');
+      const destination = u.searchParams.get('destination');
+      const waypointRaw = u.searchParams.get('waypoints') || '';
+      const waypointList = waypointRaw
+        .split('|')
+        .map(w => decodeURIComponent(w.trim()))
+        .filter(Boolean);
+      const queryStops = [origin, ...waypointList, destination].filter(Boolean);
+      if (queryStops.length >= 2) stops = queryStops;
+    }
+
+    if (stops.length < 2) throw new Error('Found fewer than 2 stops. Make sure the URL includes route points.');
     let mode = 'driving';
     if (url.includes('!3e1')) mode = 'walking';
     else if (url.includes('!3e2')) mode = 'bicycling';
     else if (url.includes('!3e3')) mode = 'transit';
-    return { stops: segments, mode };
+    else {
+      const t = u.searchParams.get('travelmode');
+      if (t === 'walking' || t === 'bicycling' || t === 'transit' || t === 'driving') mode = t;
+    }
+    stops = stops.map(cleanPlace);
+    return { stops, mode };
   }
 
   function buildGoogleUrl(stops, mode) {
     const path = stops.map(s => encodeURIComponent(s)).join('/');
-    return `https://www.google.com/maps/dir/${path}/@0,0/?travelmode=${mode}`;
+    return `https://www.google.com/maps/dir/${path}/?travelmode=${mode}`;
   }
 
   function buildAppleUrl(stops, mode) {
@@ -869,7 +918,9 @@
     const rail      = document.getElementById('route-rail');
     rail.innerHTML  = '';
 
-    function makeRow(dotClass, label, name, { showTop = false, showBottom = false, isLast = false, noBottomPad = false } = {}) {
+    const REMOVE_BTN = () => '';
+
+    function makeRow(dotClass, label, name, idx, { showTop = false, showBottom = false, isLast = false, noBottomPad = false } = {}) {
       const row = document.createElement('div');
       row.className = 'rail-row';
       const contentClass = isLast ? ' last' : noBottomPad ? ' no-pad' : '';
@@ -882,17 +933,18 @@
         <div class="rail-content${contentClass}">
           <div class="rail-label">${label}</div>
           <div class="rail-name">${name}</div>
-        </div>`;
+        </div>
+        ${REMOVE_BTN(idx)}`;
       return row;
     }
 
     if (waypoints.length === 0) {
       // Simple: origin → dest
-      rail.appendChild(makeRow('origin', 'From', origin, { showBottom: true }));
-      rail.appendChild(makeRow('dest',   'To',   dest,   { showTop: true, isLast: true }));
+      rail.appendChild(makeRow('origin', 'From', origin, 0, { showBottom: true }));
+      rail.appendChild(makeRow('dest',   'To',   dest,   1, { showTop: true, isLast: true }));
     } else if (waypoints.length === 1) {
       // Single waypoint: show all three rows, no collapse
-      rail.appendChild(makeRow('origin', 'From', origin, { showBottom: true }));
+      rail.appendChild(makeRow('origin', 'From', origin, 0, { showBottom: true }));
       const inner = document.createElement('div');
       inner.className = 'rail-row';
       inner.innerHTML = `
@@ -903,12 +955,13 @@
         </div>
         <div class="rail-content">
           <div class="rail-name">${waypoints[0]}</div>
-        </div>`;
+        </div>
+        ${REMOVE_BTN(1)}`;
       rail.appendChild(inner);
-      rail.appendChild(makeRow('dest', 'To', dest, { showTop: true, isLast: true }));
+      rail.appendChild(makeRow('dest', 'To', dest, 2, { showTop: true, isLast: true }));
     } else {
       // Multiple waypoints: origin, collapse pill, expandable waypoints, dest
-      rail.appendChild(makeRow('origin', 'From', origin, { showBottom: true, noBottomPad: true }));
+      rail.appendChild(makeRow('origin', 'From', origin, 0, { showBottom: true, noBottomPad: true }));
 
       const n = waypoints.length;
       const pillRow = document.createElement('div');
@@ -928,7 +981,7 @@
       const waypointsEl = document.createElement('div');
       waypointsEl.className = 'rail-waypoints';
       waypointsEl.id = 'waypoints-detail';
-      waypoints.forEach(wp => {
+      waypoints.forEach((wp, i) => {
         const inner = document.createElement('div');
         inner.className = 'rail-row';
         inner.innerHTML = `
@@ -939,12 +992,13 @@
           </div>
           <div class="rail-content">
             <div class="rail-name">${wp}</div>
-          </div>`;
+          </div>
+          ${REMOVE_BTN(i + 1)}`;
         waypointsEl.appendChild(inner);
       });
       rail.appendChild(waypointsEl);
 
-      rail.appendChild(makeRow('dest', 'To', dest, { showTop: true, isLast: true }));
+      rail.appendChild(makeRow('dest', 'To', dest, stops.length - 1, { showTop: true, isLast: true }));
     }
   }
 
@@ -958,6 +1012,30 @@
     const n = detail.querySelectorAll('.rail-dot.via').length;
     document.getElementById('stops-pill-label').textContent =
       isOpen ? `${n} stop${n > 1 ? 's' : ''}` : 'Collapse';
+  }
+
+  function removeStop(index) {
+    const wasOpen = !!document.getElementById('waypoints-detail')?.classList.contains('open');
+    currentStops = currentStops.map(cleanPlace);
+    currentStops.splice(index, 1);
+    if (currentStops.length < 2) return;
+    const appleUrl  = buildAppleUrl(currentStops, currentMode);
+    const googleUrl = buildGoogleUrl(currentStops, currentMode);
+    renderMapCards(appleUrl, googleUrl);
+    renderRoute(currentStops);
+    if (wasOpen) {
+      const detail = document.getElementById('waypoints-detail');
+      const pill   = document.getElementById('stops-pill');
+      if (detail && pill) {
+        detail.classList.add('open');
+        pill.classList.add('open');
+        const n = detail.querySelectorAll('.rail-dot.via').length;
+        document.getElementById('stops-pill-label').textContent = 'Collapse';
+      }
+    }
+    const routeTitle = `${currentStops[0]} to ${currentStops[currentStops.length - 1]}`;
+    document.title = routeTitle;
+    history.replaceState(null, '', `${location.pathname}?url=${encodeURIComponent(appleUrl)}`);
   }
 
   function renderOpenButtons(appleUrl, googleUrl) {
@@ -1030,12 +1108,29 @@
     } catch { return false; }
   }
 
+  function normalizeEscapes(text) {
+    return String(text || '')
+      .replace(/\\u003d/gi, '=')
+      .replace(/\\u0026/gi, '&')
+      .replace(/\\u003f/gi, '?')
+      .replace(/\\u002f/gi, '/')
+      .replace(/\\\//g, '/')
+      .replace(/&amp;/gi, '&');
+  }
+
+  function cleanExtractedUrl(raw) {
+    return normalizeEscapes(raw)
+      .replace(/[),.;]+$/g, '')
+      .trim();
+  }
+
   function findMapsUrlInText(text) {
     if (!text) return null;
-    const cleaned = String(text).replace(/\\u0026/g, '&').replace(/\\\//g, '/');
+    const cleaned = normalizeEscapes(text);
     const urls = cleaned.match(/https?:\/\/[^\s"'<>\\]+/ig) || [];
     for (const rawUrl of urls) {
-      const url = rawUrl.replace(/[),.;]+$/g, '');
+      const url = cleanExtractedUrl(rawUrl);
+      if (!url) continue;
       if (isGoogleMaps(url) || isFullAppleMaps(url)) return url;
     }
     return null;
@@ -1043,12 +1138,12 @@
 
   function extractNestedMapsUrl(value, depth = 0) {
     if (!value || depth > 6) return null;
-    const candidate = String(value).trim();
+    const candidate = cleanExtractedUrl(value);
     if (!candidate) return null;
     if (isGoogleMaps(candidate) || isFullAppleMaps(candidate)) return candidate;
 
     try {
-      const decoded = decodeURIComponent(candidate);
+      const decoded = cleanExtractedUrl(decodeURIComponent(candidate));
       if (decoded !== candidate) {
         const nestedDecoded = extractNestedMapsUrl(decoded, depth + 1);
         if (nestedDecoded) return nestedDecoded;
@@ -1089,26 +1184,50 @@
       Follow redirect`;
   }
 
-  async function resolveViaAllOrigins(raw) {
-    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(raw)}`);
-    if (!res.ok) return null;
-    const data = await res.json();
-    const fromStatus = extractNestedMapsUrl(data?.status?.url || '');
-    if (fromStatus) return fromStatus;
-    const fromContents = extractNestedMapsUrl(data?.contents || '');
-    if (fromContents) return fromContents;
-    return null;
+  function withDebugParam(raw) {
+    try {
+      const u = new URL(raw);
+      if (!u.searchParams.has('d')) u.searchParams.set('d', '1');
+      return u.toString();
+    } catch {
+      return raw;
+    }
   }
 
-  async function resolveViaCorsProxy(raw) {
-    const res = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(raw)}`, { redirect: 'follow' });
-    if (!res.ok) return null;
-    const fromHeader = extractNestedMapsUrl(res.headers.get('x-final-url') || '');
-    if (fromHeader) return fromHeader;
-    const fromUrl = extractNestedMapsUrl(res.url || '');
-    if (fromUrl) return fromUrl;
-    const text = await res.text().catch(() => '');
-    return extractNestedMapsUrl(text);
+  async function fetchWithTimeout(url, options = {}, timeoutMs = 12000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function resolveViaDirectFetch(raw) {
+    const targets = [raw];
+    if (isGoogleShortLink(raw)) targets.push(withDebugParam(raw));
+
+    for (const target of targets) {
+      // Try normal CORS fetch first (works only when target allows CORS).
+      try {
+        const res = await fetchWithTimeout(target, { redirect: 'follow' }, 12000);
+        const fromUrl = extractNestedMapsUrl(res.url || '');
+        if (fromUrl) return fromUrl;
+        const text = await res.text().catch(() => '');
+        const fromText = extractNestedMapsUrl(text);
+        if (fromText) return fromText;
+      } catch {}
+
+      // no-cors fallback: opaque response may still surface final response.url in some browsers.
+      try {
+        const res = await fetchWithTimeout(target, { redirect: 'follow', mode: 'no-cors' }, 12000);
+        const fromOpaqueUrl = extractNestedMapsUrl(res.url || '');
+        if (fromOpaqueUrl) return fromOpaqueUrl;
+      } catch {}
+    }
+
+    return null;
   }
 
   async function autoFollowRedirect(raw, { manual = false } = {}) {
@@ -1123,7 +1242,7 @@
       return;
     }
 
-    const resolvers = [resolveViaAllOrigins, resolveViaCorsProxy];
+    const resolvers = [resolveViaDirectFetch];
     for (const resolve of resolvers) {
       try {
         const finalUrl = await resolve(raw);
@@ -1137,8 +1256,8 @@
     }
 
     const msg = manual
-      ? "Still couldn't resolve this short link. Open it directly, then paste the final Maps URL."
-      : "Couldn't resolve this automatically. Click Follow redirect to retry.";
+      ? "Still couldn't resolve this in-browser (cross-origin restrictions). Open the short link, copy the final Maps URL, and paste it here."
+      : "Couldn't resolve automatically in-browser. Click Follow redirect to retry, or open the short link and paste the final Maps URL.";
     showRedirectBox(msg, { showButton: true, loading: false });
   }
 
@@ -1195,6 +1314,8 @@
         outputType = 'apple';
       }
 
+      currentStops = parsed.stops;
+      currentMode  = parsed.mode;
       renderMapCards(appleUrl, googleUrl);
       renderRoute(parsed.stops);
       const stops = parsed.stops;
