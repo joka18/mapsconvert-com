@@ -184,9 +184,9 @@ h1 { font-size: 1.75rem; font-weight: 500; letter-spacing: -0.03em; }
 .map-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.1); border-color: #c4c0b8; }
 
 .map-card-logo { flex-shrink: 0; width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
-.map-card-logo.apple  { background: #000; }
-.map-card-logo.google { background: #fff; border: 1px solid var(--border); }
-.map-card-logo img, .map-card-logo svg { width: 16px; height: 16px; }
+.map-card-logo.apple  { background: #fff; border: 1px solid var(--border); overflow: hidden; }
+.map-card-logo.google { background: #fff; border: 1px solid var(--border); overflow: hidden; }
+.map-card-logo img, .map-card-logo svg { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .map-card-url { flex: 1; min-width: 0; position: relative; }
 .map-card-platform { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
