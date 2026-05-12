@@ -489,16 +489,24 @@
     .rail-stops-pill.open svg { transform: rotate(180deg); }
 
     .rail-waypoints {
-      display: none;
+      display: flex;
       flex-direction: column;
       margin: 0;
       padding: 0;
       border: none;
       border-radius: 0;
       background: transparent;
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
     }
 
-    .rail-waypoints.open { display: flex; }
+    .rail-waypoints.open {
+      max-height: 2000px;
+      opacity: 1;
+      transition: max-height 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease 0.05s;
+    }
 
     .rail-waypoints .rail-content { padding-bottom: 10px; }
 
@@ -1092,7 +1100,14 @@
       renderMapCards(appleUrl, googleUrl);
       renderRoute(parsed.stops);
       const stops = parsed.stops;
-      document.title = stops.length >= 2 ? `${cleanPlace(stops[0])} to ${cleanPlace(stops[stops.length - 1])}` : 'Maps URL Converter';
+      const routeTitle = stops.length >= 2 ? `${cleanPlace(stops[0])} to ${cleanPlace(stops[stops.length - 1])}` : 'Maps URL Converter';
+      document.title = routeTitle;
+      let ogTitle = document.querySelector('meta[property="og:title"]');
+      if (!ogTitle) { ogTitle = document.createElement('meta'); ogTitle.setAttribute('property', 'og:title'); document.head.appendChild(ogTitle); }
+      ogTitle.setAttribute('content', routeTitle);
+      let ogDesc = document.querySelector('meta[property="og:description"]');
+      if (!ogDesc) { ogDesc = document.createElement('meta'); ogDesc.setAttribute('property', 'og:description'); document.head.appendChild(ogDesc); }
+      ogDesc.setAttribute('content', 'Open in Apple Maps or Google Maps');
       history.replaceState(null, '', `${location.pathname}?url=${encodeURIComponent(raw)}`);
       document.querySelector('.input-wrap').style.display = 'none';
       showOutput();
