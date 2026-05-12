@@ -6,11 +6,15 @@ export default {
       return handleResolve(url);
     }
 
-    // Serve static asset, injecting OG tags into HTML responses
-    const assetRes = await env.ASSETS.fetch(request);
-    const ct = assetRes.headers.get('content-type') || '';
-    if (!ct.includes('text/html')) return assetRes;
+    // Proxy the request to the static site
+    const staticUrl = new URL(request.url);
+    staticUrl.hostname = new URL(env.STATIC_ORIGIN).hostname;
+    const staticRes = await fetch(new Request(staticUrl.toString(), request));
 
+    const ct = staticRes.headers.get('content-type') || '';
+    if (!ct.includes('text/html')) return staticRes;
+
+    // Inject OG tags into HTML
     const mapUrl = url.searchParams.get('url');
     const { title, description } = getOgMeta(mapUrl);
 
@@ -30,7 +34,7 @@ export default {
           );
         }
       })
-      .transform(assetRes);
+      .transform(staticRes);
   }
 };
 
@@ -78,7 +82,7 @@ function getOgMeta(mapUrl) {
           .split('/')
           .map(s => clean(decodeURIComponent(s)))
           .filter(s => s && !/^@/.test(s) && !/^\d{1,2}z$/.test(s));
-        parts.pop(); // remove ghost last dest
+        parts.pop();
         if (parts.length >= 2) {
           return {
             title: `${parts[0]} to ${parts[parts.length - 1]}`,
