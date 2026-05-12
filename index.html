@@ -683,6 +683,8 @@
   const GOOGLE_LOGO = `<img src="https://cdn.simpleicons.org/google/1a1916" width="14" height="14" alt="Google" style="flex-shrink:0;display:block" />`;
   const EXT_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" style="margin-left:2px;opacity:0.5;flex-shrink:0"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
 
+  const GOOGLE_SHORT_HOSTS = ['maps.app.goo.gl', 'goo.gl', 'g.co'];
+  let pendingRedirectUrl = '';
   const inputEl = document.getElementById('input-url');
   const pasteBtn = document.querySelector('.paste-btn');
   let debounceTimer;
@@ -720,30 +722,40 @@
   }
 
   function resetAll() {
-    document.title = 'Maps URL Converter';
-    inputEl.value = '';
-    inputEl.readOnly = false;
-    pasteBtn.style.display = '';
-    document.querySelector('.input-wrap').style.display = '';
-    document.getElementById('route-rail').innerHTML = '';
-    document.getElementById('map-cards').innerHTML = '';
-    const shareBtn = document.getElementById('share-btn');
-    if (shareBtn) {
-      shareBtn.classList.remove('copied');
-      shareBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-        </svg>
-        Copy share link`;
-    }
     hideOutput();
     hideError();
     hideRedirectBox();
-    document.getElementById('shared-banner').classList.remove('visible');
-    history.replaceState(null, '', location.pathname);
-    inputEl.focus();
+    setTimeout(() => {
+      pendingRedirectUrl = '';
+      document.title = 'Maps URL Converter';
+      inputEl.value = '';
+      inputEl.readOnly = false;
+      pasteBtn.style.display = '';
+      const wrap = document.querySelector('.input-wrap');
+      wrap.style.opacity = '0';
+      wrap.style.transition = 'none';
+      wrap.style.display = '';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        wrap.style.transition = 'opacity 0.3s ease';
+        wrap.style.opacity = '1';
+      }));
+      document.getElementById('route-rail').innerHTML = '';
+      document.getElementById('map-cards').innerHTML = '';
+      const shareBtn = document.getElementById('share-btn');
+      if (shareBtn) {
+        shareBtn.classList.remove('copied');
+        shareBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          Copy share link`;
+      }
+      document.getElementById('shared-banner').classList.remove('visible');
+      history.replaceState(null, '', location.pathname);
+      inputEl.focus();
+    }, 250);
   }
 
   function showError(msg) {
@@ -831,7 +843,7 @@
 
   function buildGoogleUrl(stops, mode) {
     const path = stops.map(s => encodeURIComponent(s)).join('/');
-    return `https://www.google.com/maps/dir/${path}/?travelmode=${mode}`;
+    return `https://www.google.com/maps/dir/${path}/@0,0/?travelmode=${mode}`;
   }
 
   function buildAppleUrl(stops, mode) {
@@ -974,48 +986,17 @@
     el.classList.remove('visible');
     setTimeout(() => { if (!el.classList.contains('visible')) el.style.display = 'none'; }, 300);
   }
-
-
-
   function isGoogleMaps(url) {
-    try { return new URL(url).hostname.includes('google.com') && url.includes('/maps'); } catch { return false; }
-  }
-
-  function isFullAppleMaps(url) {
     try {
       const u = new URL(url);
-      return u.hostname === 'maps.apple.com' && (u.pathname.includes('directions') || u.searchParams.has('source') || u.searchParams.has('destination') || u.searchParams.has('daddr'));
+      const h = u.hostname.toLowerCase();
+      return (h === 'google.com' || h.endsWith('.google.com')) && u.pathname.includes('/maps');
     } catch { return false; }
   }
 
-  function isAppleShortLink(url) {
-    try { const u = new URL(url); return u.hostname === 'maps.apple.com' && !isFullAppleMaps(url); } catch { return false; }
-  }
-
-  function isGoogleShortLink(url) {
-    try { return new URL(url).hostname === 'maps.app.goo.gl'; } catch { return false; }
-  }
-
-  function hideRedirectBox() {
-    document.getElementById('redirect-box').classList.remove('visible');
-  }
-
-  function showRedirectBox(msg) {
-    hideError();
-    hideOutput();
-    const box = document.getElementById('redirect-box');
-    box.classList.add('visible');
-    document.querySelector('.redirect-box-text').textContent = msg || 'Following redirect…';
-    const btn = document.getElementById('resolve-btn');
-    btn.style.display = 'none';
-  }
-
-  function isGoogleMaps(url) {
-    try { return new URL(url).hostname.includes('google.com') && url.includes('/maps'); } catch { return false; }
-  }
-
   function isAppleHostname(hostname) {
-    return hostname === 'maps.apple.com' || hostname === 'maps.apple';
+    const h = (hostname || '').toLowerCase();
+    return h === 'maps.apple.com' || h === 'maps.apple';
   }
 
   function isFullAppleMaps(url) {
@@ -1025,6 +1006,7 @@
         u.pathname.includes('directions') ||
         u.searchParams.has('source') ||
         u.searchParams.has('destination') ||
+        u.searchParams.has('saddr') ||
         u.searchParams.has('daddr')
       );
     } catch { return false; }
@@ -1035,25 +1017,135 @@
   }
 
   function isGoogleShortLink(url) {
-    try { return new URL(url).hostname === 'maps.app.goo.gl'; } catch { return false; }
+    try {
+      const h = new URL(url).hostname.toLowerCase();
+      return GOOGLE_SHORT_HOSTS.some(domain => h === domain || h.endsWith('.' + domain));
+    } catch { return false; }
   }
 
-  async function autoFollowRedirect(raw) {
-    showRedirectBox('Following redirect…');
+  function looksLikeUrl(s) {
     try {
-      const res  = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(raw)}`);
-      const data = await res.json();
-      const finalUrl = data?.status?.url;
-      if (finalUrl && (isGoogleMaps(finalUrl) || isFullAppleMaps(finalUrl))) {
-        hideRedirectBox();
-        inputEl.value = finalUrl;
-        tryConvert();
-        return;
-      }
-      showRedirectBox("Couldn't resolve this link to a Maps URL. Try opening it first and pasting the final URL.");
-    } catch {
-      showRedirectBox("Couldn't follow this link — try opening it and pasting the final Maps URL here.");
+      const u = new URL(s);
+      return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch { return false; }
+  }
+
+  function findMapsUrlInText(text) {
+    if (!text) return null;
+    const cleaned = String(text).replace(/\\u0026/g, '&').replace(/\\\//g, '/');
+    const urls = cleaned.match(/https?:\/\/[^\s"'<>\\]+/ig) || [];
+    for (const rawUrl of urls) {
+      const url = rawUrl.replace(/[),.;]+$/g, '');
+      if (isGoogleMaps(url) || isFullAppleMaps(url)) return url;
     }
+    return null;
+  }
+
+  function extractNestedMapsUrl(value, depth = 0) {
+    if (!value || depth > 6) return null;
+    const candidate = String(value).trim();
+    if (!candidate) return null;
+    if (isGoogleMaps(candidate) || isFullAppleMaps(candidate)) return candidate;
+
+    try {
+      const decoded = decodeURIComponent(candidate);
+      if (decoded !== candidate) {
+        const nestedDecoded = extractNestedMapsUrl(decoded, depth + 1);
+        if (nestedDecoded) return nestedDecoded;
+      }
+    } catch {}
+
+    try {
+      const u = new URL(candidate);
+      const keys = ['url', 'link', 'deep_link_id', 'target', 'redirect', 'dest', 'destination'];
+      for (const key of keys) {
+        const nestedValue = u.searchParams.get(key);
+        if (!nestedValue) continue;
+        const nested = extractNestedMapsUrl(nestedValue, depth + 1);
+        if (nested) return nested;
+      }
+    } catch {}
+
+    return findMapsUrlInText(candidate);
+  }
+
+  function hideRedirectBox() {
+    document.getElementById('redirect-box').classList.remove('visible');
+  }
+
+  function showRedirectBox(msg, { showButton = false, loading = false } = {}) {
+    hideError();
+    hideOutput();
+    const box = document.getElementById('redirect-box');
+    box.classList.add('visible');
+    document.querySelector('.redirect-box-text').textContent = msg || 'Following redirect…';
+    const btn = document.getElementById('resolve-btn');
+    btn.style.display = showButton ? 'flex' : 'none';
+    btn.disabled = !!loading;
+    btn.innerHTML = loading ? 'Following…' : `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 10 20 15 15 20"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/>
+      </svg>
+      Follow redirect`;
+  }
+
+  async function resolveViaAllOrigins(raw) {
+    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(raw)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const fromStatus = extractNestedMapsUrl(data?.status?.url || '');
+    if (fromStatus) return fromStatus;
+    const fromContents = extractNestedMapsUrl(data?.contents || '');
+    if (fromContents) return fromContents;
+    return null;
+  }
+
+  async function resolveViaCorsProxy(raw) {
+    const res = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(raw)}`, { redirect: 'follow' });
+    if (!res.ok) return null;
+    const fromHeader = extractNestedMapsUrl(res.headers.get('x-final-url') || '');
+    if (fromHeader) return fromHeader;
+    const fromUrl = extractNestedMapsUrl(res.url || '');
+    if (fromUrl) return fromUrl;
+    const text = await res.text().catch(() => '');
+    return extractNestedMapsUrl(text);
+  }
+
+  async function autoFollowRedirect(raw, { manual = false } = {}) {
+    pendingRedirectUrl = raw;
+    showRedirectBox('Following redirect…', { showButton: true, loading: true });
+
+    const direct = extractNestedMapsUrl(raw);
+    if (direct) {
+      hideRedirectBox();
+      inputEl.value = direct;
+      tryConvert();
+      return;
+    }
+
+    const resolvers = [resolveViaAllOrigins, resolveViaCorsProxy];
+    for (const resolve of resolvers) {
+      try {
+        const finalUrl = await resolve(raw);
+        if (finalUrl) {
+          hideRedirectBox();
+          inputEl.value = finalUrl;
+          tryConvert();
+          return;
+        }
+      } catch {}
+    }
+
+    const msg = manual
+      ? "Still couldn't resolve this short link. Open it directly, then paste the final Maps URL."
+      : "Couldn't resolve this automatically. Click Follow redirect to retry.";
+    showRedirectBox(msg, { showButton: true, loading: false });
+  }
+
+  function followRedirect() {
+    const raw = pendingRedirectUrl || inputEl.value.trim();
+    if (!raw || !looksLikeUrl(raw)) return;
+    autoFollowRedirect(raw, { manual: true });
   }
 
   function tryConvert() {
@@ -1077,7 +1169,13 @@
     // Type 1: Regular Google Maps  /  Type 2: Regular Apple Maps (full directions URL)
     const isApple  = isFullAppleMaps(raw);
     const isGoogle = isGoogleMaps(raw);
-    if (!isApple && !isGoogle) return; // unsupported — ignore silently
+    if (!isApple && !isGoogle) {
+      if (looksLikeUrl(raw)) {
+        pendingRedirectUrl = raw;
+        showRedirectBox('This is not a full Maps route link yet. Click Follow redirect to resolve it.', { showButton: true, loading: false });
+      }
+      return;
+    }
 
     const sourceType = isApple ? 'apple' : 'google';
 
