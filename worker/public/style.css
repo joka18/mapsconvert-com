@@ -393,6 +393,4 @@ footer { margin-top: 2.5rem; font-size: 0.75rem; color: var(--muted); text-align
   .route-rail { padding: 12px 10px 10px; }
   .rail-name { font-size: 0.82rem; }
   .rail-stops-pill { font-size: 0.68rem; padding: 4px 8px; }
-  .share-strip { flex-direction: column; align-items: stretch; }
-  .share-btn { justify-content: center; }
 }
